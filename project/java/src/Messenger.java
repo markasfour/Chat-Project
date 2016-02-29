@@ -382,9 +382,17 @@ public class Messenger {
    }//end
 
    public static void ListContacts(Messenger esql){
-      // Your code goes here.
-      // ...
-      // ...
+      try{
+      	// Browsing current user's contact list
+        // String query = "SELECT ULC.list_member " + 
+        // 		  "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
+        //		  "WHERE U.login = login AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ";
+
+         int rowCount = esql.executeQuery(query);
+         System.out.println ("total contacts: " + rowCount);
+      }catch(Exception e){
+         System.err.println (e.getMessage());
+      }
    }//end
 
    public static void NewMessage(Messenger esql){
