@@ -337,14 +337,12 @@ public class Messenger {
          String password = in.readLine();
          System.out.print("\tEnter user phone: ");
          String phone = in.readLine();
-
-	 //Creating empty contact\block lists for a user
-	 esql.executeUpdate("INSERT INTO USER_LIST(list_type) VALUES ('block')");
-	 int block_id = esql.getCurrSeqVal("user_list_list_id_seq");
+         //Creating empty contact\block lists for a user
+         esql.executeUpdate("INSERT INTO USER_LIST(list_type) VALUES ('block')");
+         int block_id = esql.getCurrSeqVal("user_list_list_id_seq");
          esql.executeUpdate("INSERT INTO USER_LIST(list_type) VALUES ('contact')");
-	 int contact_id = esql.getCurrSeqVal("user_list_list_id_seq");
-         
-	 String query = String.format("INSERT INTO USR (phoneNum, login, password, block_list, contact_list) VALUES ('%s','%s','%s',%s,%s)", phone, login, password, block_id, contact_id);
+         int contact_id = esql.getCurrSeqVal("user_list_list_id_seq");
+         String query = String.format("INSERT INTO USR (phoneNum, login, password, block_list, contact_list) VALUES ('%s','%s','%s',%s,%s)", phone, login, password, block_id, contact_id);
 
          esql.executeUpdate(query);
          System.out.println ("User successfully created!");
@@ -364,10 +362,12 @@ public class Messenger {
          System.out.print("\tEnter user password: ");
          String password = in.readLine();
 
-         String query = String.format("SELECT * FROM Usr WHERE login = '%s' AND password = '%s'", login, password);
+         String query = String.format("SELECT * FROM Usr WHERE login = '%s' AND password = '%s'"
+                                      , login, password);
+
          int userNum = esql.executeQuery(query);
-	 if (userNum > 0)
-		return login;
+         if (userNum > 0)
+            return login;
          return null;
       }catch(Exception e){
          System.err.println (e.getMessage ());
@@ -379,14 +379,25 @@ public class Messenger {
       // Your code goes here.
       // ...
       // ...
+      //
+      //First step get the list id we want to to add to
+      String getListId = String.format("SELECT contact_list as list_id WHERE login = '%s'"
+                                      , AuthorisedUser )
+      //
+      String query =  String.format("INSERT INTO USR_LIST (list_id, list_type) " +
+                      "VALUES ('%s', '%s');", listId, "contact" ) +
+
+
    }//end
 
    public static void ListContacts(Messenger esql){
       try{
       	// Browsing current user's contact list
-        // String query = "SELECT ULC.list_member " + 
-        // 		  "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
-        //		  "WHERE U.login = login AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ";
+        String query =  "SELECT ULC.list_member " +
+                        "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
+                        "WHERE U.login = login " +
+                          "AND UL.list_id = U.contact_list " +
+                          "AND ULC.list_id = UL.list_id ";
 
          int rowCount = esql.executeQuery(query);
          System.out.println ("total contacts: " + rowCount);
