@@ -395,13 +395,13 @@ public class Messenger {
    public static void ListContacts(Messenger esql, String authorisedUser){
       try{
       	// Browsing current user's contact list
-<<<<<<< HEAD
+
         String query =  "SELECT ULC.list_member " +
                         "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
                         "WHERE U.login = login " +
                           "AND UL.list_id = U.contact_list " +
                           "AND ULC.list_id = UL.list_id ";
-=======
+
         String query = "SELECT ULC.list_member " + 
          	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
         	       "WHERE U.login = authorisedUser AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ";
@@ -419,7 +419,6 @@ public class Messenger {
         String query = "SELECT ULC.list_member " + 
          	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
         	       "WHERE U.login = authorisedUser AND UL.list_id = U.block_list AND ULC.list_id = UL.list_id ";
->>>>>>> 431634059913246e3f03938aa1a502489d69a76b
 
          int rowCount = esql.executeQuery(query);
          System.out.println ("total contacts: " + rowCount);
