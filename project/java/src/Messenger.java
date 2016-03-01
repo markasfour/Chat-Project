@@ -269,13 +269,15 @@ public class Messenger {
                 System.out.println("---------");
                 System.out.println("1. Add to contact list");
                 System.out.println("2. Browse contact list");
-                System.out.println("3. Write a new message");
+                System.out.println("3. Browse blocked list");
+                System.out.println("4. Write a new message");
                 System.out.println(".........................");
                 System.out.println("9. Log out");
                 switch (readChoice()){
                    case 1: AddToContact(esql); break;
-                   case 2: ListContacts(esql); break;
-                   case 3: NewMessage(esql); break;
+                   case 2: ListContacts(esql, authorisedUser); break;
+                   case 2: ListBlocked(esql, authorisedUser); break;
+                   case 4: NewMessage(esql); break;
                    case 9: usermenu = false; break;
                    default : System.out.println("Unrecognized choice!"); break;
                 }
@@ -390,14 +392,34 @@ public class Messenger {
 
    }//end
 
-   public static void ListContacts(Messenger esql){
+   public static void ListContacts(Messenger esql, String authorisedUser){
       try{
       	// Browsing current user's contact list
+<<<<<<< HEAD
         String query =  "SELECT ULC.list_member " +
                         "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
                         "WHERE U.login = login " +
                           "AND UL.list_id = U.contact_list " +
                           "AND ULC.list_id = UL.list_id ";
+=======
+        String query = "SELECT ULC.list_member " + 
+         	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
+        	       "WHERE U.login = authorisedUser AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ";
+
+         int rowCount = esql.executeQuery(query);
+         System.out.println ("total contacts: " + rowCount);
+      }catch(Exception e){
+         System.err.println (e.getMessage());
+      }
+   }//end
+   
+    public static void ListBlocked(Messenger esql, String authorisedUser){
+      try{
+      	// Browsing current user's block list
+        String query = "SELECT ULC.list_member " + 
+         	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
+        	       "WHERE U.login = authorisedUser AND UL.list_id = U.block_list AND ULC.list_id = UL.list_id ";
+>>>>>>> 431634059913246e3f03938aa1a502489d69a76b
 
          int rowCount = esql.executeQuery(query);
          System.out.println ("total contacts: " + rowCount);
