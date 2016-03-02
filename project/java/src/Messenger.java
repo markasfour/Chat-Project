@@ -276,7 +276,7 @@ public class Messenger {
                 switch (readChoice()){
                    case 1: AddToContact(esql, authorisedUser); break;
                    case 2: ListContacts(esql, authorisedUser); break;
-                   case 2: ListBlocked(esql, authorisedUser); break;
+                   case 3: ListBlocked(esql, authorisedUser); break;
                    case 4: NewMessage(esql); break;
                    case 9: usermenu = false; break;
                    default : System.out.println("Unrecognized choice!"); break;
@@ -389,7 +389,7 @@ public class Messenger {
       if (rowCount == 1) //requested user exists
       {
 	      //Second, get contact list ID
-	      String query2 = String.format("SELECT contact_list WHERE login = '%s'", authorisedUser)
+	      String query2 = String.format("SELECT contact_list WHERE login = '%s'", authorisedUser);
 	      
 	      int contact_list_ID = esql.executeQuery(query2);
 	      
@@ -398,28 +398,20 @@ public class Messenger {
 	                      "VALUES ('%s', '%s');", contact_list_ID, login);
 	                    
 	      esql.executeUpdate(query3);
-	      System.out.println ("%s successfully added to contacts!", login);
+	      System.out.println ("Successfully added to contacts!");
       }
       else //requested user does not exist
         System.out.println ("This user does not exist.\n");
-        
-      return null;
+
       
       }catch(Exception e){
       	System.err.println (e.getMessage ());
-         return null;
       }
    }//end
 
    public static void ListContacts(Messenger esql, String authorisedUser){
       try{
       	// Browsing current user's contact list
-
-        String query =  "SELECT ULC.list_member " +
-                        "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
-                        "WHERE U.login = login " +
-                          "AND UL.list_id = U.contact_list " +
-                          "AND ULC.list_id = UL.list_id ";
 
         String query = "SELECT ULC.list_member " + 
          	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
