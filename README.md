@@ -1,24 +1,31 @@
 # Chat-Project
 
-# Design
-list_type = [contact|block]
+## Required PostgreSQL queries
 
-# Required PostgreSQL queries
-
-Create User:
+###Create User:
 Already Done
 
-Login:
+###Login:
 Already Done
 
-Add to Contact List:
-Started
+###Add to Contact List:
+Done
 
-Write a new Message:
-Not done
+###View Contact List:
+Done
 
-View chat members:
+###View Block List:
+Done
 
-View chat lists:
+###Write a new Message:
+Not started
 
+###View chat members:
+Not started
+
+###View chat lists:
+Not started
+
+###Delete user:
+Not started
 
