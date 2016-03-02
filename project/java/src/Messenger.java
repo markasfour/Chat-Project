@@ -385,58 +385,62 @@ public class Messenger {
       login = in.readLine();
       String query1 = String.format("SELECT COUNT(*) FROM Usr WHERE login = '%s'", login);
       int rowCount = esql.executeQuery(query1);
-      
+    
       if (rowCount == 1) //requested user exists
-      {
-	      //Second, get contact list ID
-	      String query2 = String.format("SELECT contact_list WHERE login = '%s'", authorisedUser);
-	      
-	      int contact_list_ID = esql.executeQuery(query2);
-	      
-	      //Third, insert new contact into contat list ID
-	      String query3 =  String.format("INSERT INTO USER_LIST_CONTAINS (list_id, list_member) " +
-	                      "VALUES ('%s', '%s');", contact_list_ID, login);
-	                    
-	      esql.executeUpdate(query3);
-	      System.out.println ("Successfully added to contacts!");
-      }
+      {   
+        //Second, get contat list ID
+        String query2 = String.format("SELECT contact_list FROM Usr WHERE login = '%s'", authorisedUser);
+    
+        List<List<String>> result;
+        result = esql.executeQueryAndReturnResult(query2);
+        int list_id = Integer.parseInt(result.get(0).get(0)); 
+    
+        //Third, insert contact to contact list
+        String query3 = String.format("INSERT INTO USER_LIST_CONTAINS (list_id, list_member) " +
+                        "VALUES('%s', '%s');", list_id, login);
+    
+        esql.executeUpdate(query3);
+        System.out.println ("Successfully added to contacts!");
+      }   
       else //requested user does not exist
-        System.out.println ("This user does not exist.\n");
-
-      
-      }catch(Exception e){
-      	System.err.println (e.getMessage ());
-      }
+        System.out.println ("This user does not exist.");
+    
+    
+      }catch(Exception e){ 
+        System.err.println (e.getMessage ());
+      }   
    }//end
+
 
    public static void ListContacts(Messenger esql, String authorisedUser){
       try{
-      	// Browsing current user's contact list
+        // Browsing current user's contact list
 
         String query = String.format("SELECT ULC.list_member " + 
-         	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
-        	       "WHERE U.login = '%s' AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ", authorisedUser);
+                       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
+                       "WHERE U.login = '%s' AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ", authorisedUser);
 
-         int rowCount = esql.executeQuery(query);
+         int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total contacts: " + rowCount);
       }catch(Exception e){
          System.err.println (e.getMessage());
       }
    }//end
-   
+
     public static void ListBlocked(Messenger esql, String authorisedUser){
       try{
-      	// Browsing current user's block list
-        String query = String.format("SELECT ULC.list_member " + 
-         	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
-        	       "WHERE U.login = '%s' AND UL.list_id = U.block_list AND ULC.list_id = UL.list_id ", authorisedUser);
+        // Browsing current user's block list
+        String query = String.format("SELECT ULC.list_member " +
+                       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
+                       "WHERE U.login = '%s' AND UL.list_id = U.block_list AND ULC.list_id = UL.list_id ", authorisedUser);
 
-         int rowCount = esql.executeQuery(query);
+         int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total contacts: " + rowCount);
       }catch(Exception e){
          System.err.println (e.getMessage());
       }
    }//end
+
 
    public static void NewMessage(Messenger esql){
       // Your code goes here.
