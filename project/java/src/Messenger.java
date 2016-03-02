@@ -394,7 +394,7 @@ public class Messenger {
 	      int contact_list_ID = esql.executeQuery(query2);
 	      
 	      //Third, insert new contact into contat list ID
-	      String query3 =  String.format("INSERT INTO USR_LIST_CONTACT (list_id, list_member) " +
+	      String query3 =  String.format("INSERT INTO USER_LIST_CONTAINS (list_id, list_member) " +
 	                      "VALUES ('%s', '%s');", contact_list_ID, login);
 	                    
 	      esql.executeUpdate(query3);
@@ -413,9 +413,9 @@ public class Messenger {
       try{
       	// Browsing current user's contact list
 
-        String query = "SELECT ULC.list_member " + 
+        String query = String.format("SELECT ULC.list_member " + 
          	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
-        	       "WHERE U.login = authorisedUser AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ";
+        	       "WHERE U.login = '%s' AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ", authorisedUser);
 
          int rowCount = esql.executeQuery(query);
          System.out.println ("total contacts: " + rowCount);
@@ -427,9 +427,9 @@ public class Messenger {
     public static void ListBlocked(Messenger esql, String authorisedUser){
       try{
       	// Browsing current user's block list
-        String query = "SELECT ULC.list_member " + 
+        String query = String.format("SELECT ULC.list_member " + 
          	       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " + 
-        	       "WHERE U.login = authorisedUser AND UL.list_id = U.block_list AND ULC.list_id = UL.list_id ";
+        	       "WHERE U.login = '%s' AND UL.list_id = U.block_list AND ULC.list_id = UL.list_id ", authorisedUser);
 
          int rowCount = esql.executeQuery(query);
          System.out.println ("total contacts: " + rowCount);
