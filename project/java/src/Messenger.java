@@ -274,7 +274,7 @@ public class Messenger {
                 System.out.println(".........................");
                 System.out.println("9. Log out");
                 switch (readChoice()){
-                   case 1: AddToContact(esql); break;
+                   case 1: AddToContact(esql, authorisedUser); break;
                    case 2: ListContacts(esql, authorisedUser); break;
                    case 2: ListBlocked(esql, authorisedUser); break;
                    case 4: NewMessage(esql); break;
@@ -377,19 +377,38 @@ public class Messenger {
       }
    }//end
 
-   public static void AddToContact(Messenger esql){
-      // Your code goes here.
-      // ...
-      // ...
-      //
-      //First step get the list id we want to to add to
-      String getListId = String.format("SELECT contact_list as list_id WHERE login = '%s'"
-                                      , AuthorisedUser )
-      //
-      String query =  String.format("INSERT INTO USR_LIST (list_id, list_type) " +
-                      "VALUES ('%s', '%s');", listId, "contact" ) +
-
-
+   public static void AddToContact(Messenger esql, String authorisedUser){
+      try{
+      //First, ask user for other user's login and check if they exist
+      String login;
+      System.out.print("Enter the login name: ");
+      login = in.readLine();
+      String query1 = String.format("SELECT COUNT(*) FROM Usr WHERE login = '%s'", login);
+      int rowCount = esql.executeQuery(query1);
+      
+      if (rowCount == 1) //requested user exists
+      {
+	      //Second, get contact list ID
+	      String query2 = String.format("SELECT contact_list WHERE login = '%s'", authorisedUser)
+	      
+	      int contact_list_ID = esql.executeQuery(query2);
+	      
+	      //Third, insert new contact into contat list ID
+	      String query3 =  String.format("INSERT INTO USR_LIST_CONTACT (list_id, list_member) " +
+	                      "VALUES ('%s', '%s');", contact_list_ID, login);
+	                    
+	      esql.executeUpdate(query3);
+	      System.out.println ("%s successfully added to contacts!", login);
+      }
+      else //requested user does not exist
+        System.out.println ("This user does not exist.\n");
+        
+      return null;
+      
+      }catch(Exception e){
+      	System.err.println (e.getMessage ());
+         return null;
+      }
    }//end
 
    public static void ListContacts(Messenger esql, String authorisedUser){
