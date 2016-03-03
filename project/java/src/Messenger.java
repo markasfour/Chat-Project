@@ -270,14 +270,16 @@ public class Messenger {
                 System.out.println("1. Add to contact list");
                 System.out.println("2. Browse contact list");
                 System.out.println("3. Browse blocked list");
-                System.out.println("4. Write a new message");
+                System.out.println("4. View chats");
+                System.out.println("5. Write a new message");
                 System.out.println(".........................");
                 System.out.println("9. Log out");
                 switch (readChoice()){
                    case 1: AddToContact(esql, authorisedUser); break;
                    case 2: ListContacts(esql, authorisedUser); break;
                    case 3: ListBlocked(esql, authorisedUser); break;
-                   case 4: NewMessage(esql); break;
+                   case 4: ListChats(esql, authorisedUser); break;
+                   case 5: NewMessage(esql); break;
                    case 9: usermenu = false; break;
                    default : System.out.println("Unrecognized choice!"); break;
                 }
@@ -441,6 +443,21 @@ public class Messenger {
       }
    }//end
 
+   public static void ListChats(Messenger esql, String authorisedUser){
+      try{
+        // Browsing current user's block list
+        String query = String.format("SELECT CL.chat_id, CL.member " + 
+                       "FROM CHAT_LIST CL " + 
+                       "WHERE UL.list_id = (SELECT chat_id " +
+                                "FROM CHAT_LIST " +
+                                "WHERE member = '%s' ", authorisedUser);
+
+         int rowCount = esql.executeQueryAndPrintResult(query);
+         System.out.println ("total chats: " + rowCount);
+      }catch(Exception e){ 
+         System.err.println (e.getMessage());
+      }   
+   }//end
 
    public static void NewMessage(Messenger esql){
       // Your code goes here.
