@@ -445,12 +445,12 @@ public class Messenger {
 
    public static void ListChats(Messenger esql, String authorisedUser){
       try{
-        // Browsing current user's block list
+      	//select chats where user is a member of that chat
         String query = String.format("SELECT CL.chat_id, CL.member " + 
                        "FROM CHAT_LIST CL " + 
-                       "WHERE UL.list_id = (SELECT chat_id " +
+                       "WHERE CL.chat_id = ANY (SELECT chat_id " +
                                 "FROM CHAT_LIST " +
-                                "WHERE member = '%s' ", authorisedUser);
+                                "WHERE member = '%s' )", authorisedUser);
 
          int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total chats: " + rowCount);
