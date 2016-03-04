@@ -48,12 +48,12 @@ public class Messenger {
     * @param password the user login password
     * @throws java.sql.SQLException when failed to make a connection.
     */
-   public Messenger (String dbname, String dbport, String user, String passwd) throws SQLException {
+   public Messenger (String hostname, String dbname, String dbport, String user, String passwd) throws SQLException {
 
       System.out.print("Connecting to database...");
       try{
          // constructs the connection URL
-         String url = "jdbc:postgresql://localhost:" + dbport + "/" + dbname;
+         String url = "jdbc:postgresql:/" + hostname + ":" + dbport + "/" + dbname;
          System.out.println ("Connection URL: " + url + "\n");
 
          // obtain a physical connection
@@ -245,7 +245,7 @@ public class Messenger {
          String dbname = args[0];
          String dbport = args[1];
          String user = args[2];
-         esql = new Messenger (dbname, dbport, user, "");
+         esql = new Messenger (, dbname, dbport, user, );
 
          boolean keepon = true;
          while(keepon) {
