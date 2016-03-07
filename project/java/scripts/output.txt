@@ -1,0 +1,23 @@
+/home/mehran/workspace/Chat-Project/project/classes
+chat-messenger.cjkipm6h5qsr.us-west-1.rds.amazonaws.com
+ARGS= chat-messenger.cjkipm6h5qsr.us-west-1.rds.amazonaws.com chat 5432 chat finish 
+
+
+*******************************************************
+              User Interface      	               
+*******************************************************
+
+hostname is chat-messenger.cjkipm6h5qsr.us-west-1.rds.amazonaws.com
+dbname is chat
+dbport is 5432
+user is chat
+password is finish
+Connecting to database...Connection URL: jdbc:postgresql://chat-messenger.cjkipm6h5qsr.us-west-1.rds.amazonaws.com:5432/chat?user=chat&password=finish&ssl=false
+
+Done
+[H[2JMAIN MENU
+---------
+1. Create user
+2. Log in
+9. < EXIT
+Please make your choice: 

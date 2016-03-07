@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -48,16 +49,18 @@ public class Messenger {
     * @param password the user login password
     * @throws java.sql.SQLException when failed to make a connection.
     */
-   public Messenger (String dbname, String dbport, String user, String passwd) throws SQLException {
+   public Messenger (String hostname, String dbname, String dbport, String user, String passwd) throws SQLException {
 
       System.out.print("Connecting to database...");
       try{
          // constructs the connection URL
-         String url = "jdbc:postgresql://localhost:" + dbport + "/" + dbname;
+         String url = "jdbc:postgresql://" + hostname + ":" + dbport + "/" + dbname 
+                      + "?user=" + user + "&password=" + passwd + "&ssl=false";
          System.out.println ("Connection URL: " + url + "\n");
 
          // obtain a physical connection
-         this._connection = DriverManager.getConnection(url, user, passwd);
+         this._connection = DriverManager.getConnection(url);
+        
          System.out.println("Done");
       }catch (Exception e){
          System.err.println("Error - Unable to Connect to Database: " + e.getMessage() );
@@ -226,12 +229,20 @@ public class Messenger {
     * @param args the command line arguments this inclues the <mysql|pgsql> <login file>
     */
    public static void main (String[] args) {
-      if (args.length != 3) {
+     
+
+ System.out.print ("ARGS= ");
+ for (String arg: args)
+     System.out.print (arg + " ");
+ System.out.println();
+
+
+      if (args.length != 5 && args.length != 4) {
          System.err.println (
             "Usage: " +
             "java [-classpath <classpath>] " +
             Messenger.class.getName () +
-            " <dbname> <port> <user>");
+            " <hostname> <dbname> <port> <user> <password>");
          return;
       }//end if
       
@@ -242,19 +253,36 @@ public class Messenger {
          Class.forName ("org.postgresql.Driver").newInstance ();
          // instantiate the Messenger object and creates a physical
          // connection.
-         String dbname = args[0];
-         String dbport = args[1];
-         String user = args[2];
-         esql = new Messenger (dbname, dbport, user, "");
+         String hostname = args[0];
+         System.out.println("hostname is " + hostname);
+        
+         String dbname = args[1];
+         System.out.println("dbname is " + dbname);
+        
+         String dbport = args[2];
+         System.out.println("dbport is " + dbport);
+        
+         String user = args[3];
+         System.out.println("user is " + user);
+        
+         String password = "";
+         if(args.length == 5 ){
+           password = args[4];
+         }
+         System.out.println("password is " + password);
+        
+         esql = new Messenger (hostname, dbname, dbport, user, password);
 
          boolean keepon = true;
          while(keepon) {
             // These are sample SQL statements
+            System.out.print("\033[H\033[2J");
             System.out.println("MAIN MENU");
             System.out.println("---------");
             System.out.println("1. Create user");
             System.out.println("2. Log in");
             System.out.println("9. < EXIT");
+            System.out.flush();
             String authorisedUser = null;
             switch (readChoice()){
                case 1: CreateUser(esql); break;
@@ -265,23 +293,34 @@ public class Messenger {
             if (authorisedUser != null) {
               boolean usermenu = true;
               while(usermenu) {
+                System.out.print("\033[H\033[2J");
                 System.out.println("MAIN MENU");
                 System.out.println("---------");
                 System.out.println("1. Add to contact list");
                 System.out.println("2. Browse contact list");
                 System.out.println("3. Browse blocked list");
                 System.out.println("4. View chats");
-                System.out.println("5. Write a new message");
+                System.out.println("5. Create A Chat");
+                System.out.println("6. Delete Account");
                 System.out.println(".........................");
                 System.out.println("9. Log out");
+                System.out.flush();
                 switch (readChoice()){
-                   case 1: AddToContact(esql, authorisedUser); break;
-                   case 2: ListContacts(esql, authorisedUser); break;
-                   case 3: ListBlocked(esql, authorisedUser); break;
-                   case 4: ListChats(esql, authorisedUser); break;
-                   case 5: NewMessage(esql); break;
+                   case 1: AddToContact(esql, authorisedUser); 
+                           WaitForKey(); break;
+                   case 2: ListContacts(esql, authorisedUser);  
+                           WaitForKey(); break;
+                   case 3: ListBlocked(esql, authorisedUser); 
+                           WaitForKey(); break;
+                   case 4: ListChats(esql, authorisedUser);  
+                           WaitForKey(); break;
+                   case 5: NewChat(esql, authorisedUser); 
+                           WaitForKey(); break;
+                   case 6: DeleteAccount(esql, authorisedUser); 
+                           WaitForKey(); break;
                    case 9: usermenu = false; break;
-                   default : System.out.println("Unrecognized choice!"); break;
+                   default : System.out.println("Unrecognized choice!");  
+                           WaitForKey(); break;
                 }
               }
             }
@@ -328,7 +367,25 @@ public class Messenger {
       }while (true);
       return input;
    }//end readChoice
-
+  
+   /*
+    * Wait for key to continue
+    *
+    **/
+  public static void WaitForKey(){
+      // returns only if a correct value is given.
+      do {
+         System.out.println("Press any key to continue");
+         try { // read the integer, parse it and break.
+            Integer.parseInt(in.readLine());
+            break;
+         }catch (Exception e) {
+            //System.out.println("Your input is invalid!");
+            break;
+         }//end try
+      }while (true);
+  }
+  
    /*
     * Creates a new user with privided login, passowrd and phoneNum
     * An empty block and contact list would be generated and associated with a user
@@ -346,7 +403,10 @@ public class Messenger {
          int block_id = esql.getCurrSeqVal("user_list_list_id_seq");
          esql.executeUpdate("INSERT INTO USER_LIST(list_type) VALUES ('contact')");
          int contact_id = esql.getCurrSeqVal("user_list_list_id_seq");
-         String query = String.format("INSERT INTO USR (phoneNum, login, password, block_list, contact_list) VALUES ('%s','%s','%s',%s,%s)", phone, login, password, block_id, contact_id);
+         String query = String.format("INSERT INTO USR (phoneNum, " +
+                                      "login, password, block_list, " + 
+                                      "contact_list) VALUES ('%s','%s','%s',%s,%s)"
+                                      , phone, login, password, block_id, contact_id);
 
          esql.executeUpdate(query);
          System.out.println ("User successfully created!");
@@ -445,12 +505,12 @@ public class Messenger {
 
    public static void ListChats(Messenger esql, String authorisedUser){
       try{
-        // Browsing current user's block list
+        //select chats where user is a member of that chat
         String query = String.format("SELECT CL.chat_id, CL.member " + 
                        "FROM CHAT_LIST CL " + 
-                       "WHERE UL.list_id = (SELECT chat_id " +
+                       "WHERE CL.chat_id = ANY (SELECT chat_id " +
                                 "FROM CHAT_LIST " +
-                                "WHERE member = '%s' ", authorisedUser);
+                                "WHERE member = '%s' )", authorisedUser);
 
          int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total chats: " + rowCount);
@@ -458,12 +518,90 @@ public class Messenger {
          System.err.println (e.getMessage());
       }   
    }//end
+  
+  private static boolean validUser(Messenger esql, String checkingUser){
+    try{
+      String query = String.format("SELECT login FROM usr WHERE login='%s'", checkingUser);
+      if(esql.executeQueryAndPrintResult(query)>0){
+        return true;
+      }
+      return false;
+     } catch(Exception e){
+      return false;
+     } 
+    
+  }
 
-   public static void NewMessage(Messenger esql){
-      // Your code goes here.
-      // ...
-      // ...
-   }//end 
+  public static void NewChat(Messenger esql, String authorisedUser){
+      System.out.println("Here are a list of your contacts, you can also add other users with their username? ");
+      ListContacts(esql, authorisedUser);
+      boolean picking = true;
+      HashSet<String> users = new HashSet<String>();
+      users.add(authorisedUser)
+      try {
+        while(picking){
+          System.out.println("Type in the new reciepients name or hit [enter] to continue");
+          String contact = in.readLine();
+          if(validUser(esql, contact)){
+            System.out.println("Adding " + contact + " to the recipients list");
+            users.add(contact);
+          } else {
+            System.out.println("Not a valid Username try again!");
+          }
+        }
+      } catch(IOException e){
+        continue;
+      } 
+      String chat_type = "";
+      try {
+        while(picking){
+          System.out.println("\t1. group");
+          System.out.println("\t2. private");
+          switch(readChoice()){
+            case 1: chat_type = "group"; picking = false; break;
+            case 2: chat_type = "private"; picking = false; break;
+            default: System.out.println("Unrecognized choice!"); break;
+          }
+        }
+      } catch(Exception e){
+         System.err.println (e.getMessage ());
+      }
+    
+      try {
+        int seq_val = esql.getCurrSeqVal("chat_chat_id_seq");
+        String query_insert_chat = String.format("INSERT INTO chat (chat_type, init_sender) VALUES (%s,%s)"
+                                     , chat_type, authorisedUser);
+        esql.executeQuery(query_insert_chat);
+        
+        /*
+        String query_insert_chat_list = "INSERT INTO chat_list (chat_id, member) VALUES (%s,%s)";
+        
+        for(int k = 0; k < users.size(); k++){
+          query_insert_chat_list += " (%s,%s)";
+        }
+        */
+        
+        for(String member : users){
+          String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES (%s,%s)"
+                                                        , seq_val, member);
+          esql.executeQuery(query_insert_chat_list);
+        }
+        
+      
+      } catch(PSQLException e){
+        System.out.println("Query Error: "+ e.getMessage());
+      }
+  }//end 
+     
+   public static void DeleteAccount(Messenger esql, String authorisedUser){
+    try{
+     
+      
+    } catch(Exception e) {
+      
+    }
+       
+  }
 
 
    public static void Query6(Messenger esql){
