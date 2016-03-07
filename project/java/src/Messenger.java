@@ -585,8 +585,7 @@ public class Messenger {
           System.out.println("Pick the chat type:");
           System.out.println("\t1. group");
           System.out.println("\t2. private");
-          String contact = in.readLine();
-          switch(contact){
+          switch(readChoice()){
             case "1": chat_type = "group"; 
                     picking = false; break;
             case "2": chat_type = "private"; 
