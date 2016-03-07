@@ -201,14 +201,13 @@ public class Messenger {
     * @return current value of a sequence
     * @throws java.sql.SQLException when failed to execute the query
     */
-   public int getCurrSeqVal(String sequence) throws SQLException {
-	Statement stmt = this._connection.createStatement ();
-	
-	ResultSet rs = stmt.executeQuery (String.format("Select currval('%s')", sequence));
-	if (rs.next())
-		return rs.getInt(1);
-	return -1;
-   }
+  public int getCurrSeqVal(String sequence) throws SQLException {
+	  Statement stmt = this._connection.createStatement ();
+	  ResultSet rs = stmt.executeQuery (String.format("Select currval('%s')", sequence));
+	  if (rs.next())
+		  return rs.getInt(1);
+	  return -1;
+  }
 
    /**
     * Method to close the physical connection if it is open.
@@ -223,6 +222,27 @@ public class Messenger {
       }//end try
    }//end cleanup
 
+  public static void ViewChatSubmenu(Messenger esql, String authorisedUser){
+      boolean picking = true;
+      ListChats(esql, authorisedUser);  
+      System.out.println("\t1. View Messeges in chat");
+      System.out.println("\t2. Reply to chat");
+      System.out.println("\t3. Add member to chat");
+      System.out.println("\t4. Delete memeber from chat");
+      System.out.println("\t5. Delete chat");
+      while(picking){
+        switch (readChoice()){
+          case 1: AddToContact(esql, authorisedUser); 
+                  WaitForKey(); break;
+          
+           
+          default : System.out.println("Unrecognized choice! choose again"); break;
+        }
+    }
+      
+            
+  }
+  
    /**
     * The main execution method
     *
@@ -294,7 +314,7 @@ public class Messenger {
               boolean usermenu = true;
               while(usermenu) {
                 System.out.print("\033[H\033[2J");
-                System.out.println("MAIN MENU");
+                System.out.println("MAIN MENU\tWelcome, "+authorisedUser);
                 System.out.println("---------");
                 System.out.println("1. Add to contact list");
                 System.out.println("2. Browse contact list");
@@ -312,7 +332,8 @@ public class Messenger {
                            WaitForKey(); break;
                    case 3: ListBlocked(esql, authorisedUser); 
                            WaitForKey(); break;
-                   case 4: ListChats(esql, authorisedUser);  
+                   case 4: ViewChatSubmenu(esql, authorisedUser);
+                  
                            WaitForKey(); break;
                    case 5: NewChat(esql, authorisedUser); 
                            WaitForKey(); break;
@@ -533,63 +554,80 @@ public class Messenger {
   }
 
   public static void NewChat(Messenger esql, String authorisedUser){
-      System.out.println("Here are a list of your contacts, you can also add other users with their username? ");
+      System.out.println("Here are a list of your contacts, you can also add other users with their username: ");
       ListContacts(esql, authorisedUser);
       boolean picking = true;
       HashSet<String> users = new HashSet<String>();
-      users.add(authorisedUser)
+      users.add(authorisedUser);
       try {
         while(picking){
           System.out.println("Type in the new reciepients name or hit [enter] to continue");
           String contact = in.readLine();
+          System.out.println("contact is " + contact);
           if(validUser(esql, contact)){
             System.out.println("Adding " + contact + " to the recipients list");
             users.add(contact);
+          } else if (contact.equals("")){
+            System.out.println("continuing...");
+            picking = false;
           } else {
             System.out.println("Not a valid Username try again!");
           }
         }
-      } catch(IOException e){
-        continue;
+      } catch(Exception e){
+       
       } 
+      
+      picking = true;
       String chat_type = "";
       try {
         while(picking){
+          System.out.println("Pick the chat type:");
           System.out.println("\t1. group");
           System.out.println("\t2. private");
-          switch(readChoice()){
-            case 1: chat_type = "group"; picking = false; break;
-            case 2: chat_type = "private"; picking = false; break;
+          String contact = in.readLine();
+          switch(contact){
+            case "1": chat_type = "group"; 
+                    picking = false; break;
+            case "2": chat_type = "private"; 
+                    picking = false; break;
             default: System.out.println("Unrecognized choice!"); break;
           }
         }
       } catch(Exception e){
          System.err.println (e.getMessage ());
       }
-    
+      String query_insert_chat = "";
       try {
-        int seq_val = esql.getCurrSeqVal("chat_chat_id_seq");
-        String query_insert_chat = String.format("INSERT INTO chat (chat_type, init_sender) VALUES (%s,%s)"
+        //int seq_val = esql.getCurrSeqVal("chat_chat_id_seq");
+        query_insert_chat = String.format(
+                                     "INSERT INTO chat (chat_type, init_sender) VALUES ('%s','%s') RETURNING chat_id;"
                                      , chat_type, authorisedUser);
-        esql.executeQuery(query_insert_chat);
+        List< List < String > > result = esql.executeQueryAndReturnResult(query_insert_chat);
+        System.out.println("Executed");
+        //System.out.println("Result is: " + result.toString());
+        int seq_val = Integer.parseInt(result.get(0).get(0));
+        System.out.println("chat_id is " + seq_val);
         
         /*
-        String query_insert_chat_list = "INSERT INTO chat_list (chat_id, member) VALUES (%s,%s)";
+        String query_insert_chat_list = "INSERT INTO chat_list (chat_id, member) VALUES ('%s','%s')";
         
         for(int k = 0; k < users.size(); k++){
-          query_insert_chat_list += " (%s,%s)";
+          query_insert_chat_list += " ('%s','%s')";
         }
         */
         
         for(String member : users){
-          String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES (%s,%s)"
+          System.out.println("Adding user "+ member);
+          String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES ('%s','%s');"
                                                         , seq_val, member);
           esql.executeQuery(query_insert_chat_list);
         }
-        
       
-      } catch(PSQLException e){
-        System.out.println("Query Error: "+ e.getMessage());
+        System.out.println("Finished creating a chat!");
+      } catch(Exception e){
+        //System.out.println("Query: "+ query_insert_chat);
+        //System.out.println("Query Error: "+ e.getMessage());
       }
   }//end 
      
@@ -603,7 +641,17 @@ public class Messenger {
        
   }
 
-
+  public static void ViewChat(){
+    try{
+      String get_chat_query = String.format("SELECT * FROM message WHERE chat_id=5001 ORDER BY msg_timestamp LIMIT 10"); 
+      
+    } catch(Exception e){
+      
+    }
+    
+  }
+  
+  
    public static void Query6(Messenger esql){
       // Your code goes here.
       // ...
