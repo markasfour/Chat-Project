@@ -224,12 +224,15 @@ public class Messenger {
 
   public static void ViewChatSubmenu(Messenger esql, String authorisedUser){
       boolean picking = true;
-      ListChats(esql, authorisedUser);  
-      System.out.println("\t1. Open Chat for viewing and replying");
-      System.out.println("\t2. Add member to chat");
-      System.out.println("\t3. Delete memeber from chat");
-      System.out.println("\t4. Delete chat");
       while(picking){
+      	System.out.print("\033[H\033[2J"); 
+        ListChats(esql, authorisedUser);  
+      	System.out.println("\t1. Open Chat for viewing and replying");
+      	System.out.println("\t2. Add member to chat");
+      	System.out.println("\t3. Delete memeber from chat");
+      	System.out.println("\t4. Delete chat");
+      	System.out.println("\t5. return to main menu");
+      	System.out.flush();
         switch (readChoice()){
           case 1: 
                   ViewMessages(esql, authorisedUser); 
@@ -243,6 +246,9 @@ public class Messenger {
           case 4:
                   DeleteChat(esql, authorisedUser);
                   break;
+          case 5:
+          	      picking = false;
+          	      break;
           
           
            
@@ -690,26 +696,36 @@ public class Messenger {
   //MARK'S CODE - TEST ME
   public static void ViewMessages(Messenger esql, String authorisedUser){
     boolean picking = true;
+    int offset = 0;
     try{
       System.out.println("Select a chat to view messages in.");
       int chat = Integer.parseInt(in.readLine());
       if (ValidChat(esql, authorisedUser, chat))
       {
-        
-        System.out.print("\033[H\033[2J");
-      	int limit = 10;
-      	String get_chat_query = String.format("SELECT * FROM message WHERE chat_id= %d ORDER BY msg_timestamp desc LIMIT %d", chat, limit);
-      	esql.executeQueryAndPrintResult(get_chat_query);
-      	//ask if user wants to view more. increment limit by 10. clear screen and reexecute query. loop until user says no
         while(picking){
+          System.out.print("\033[H\033[2J");
+          System.out.println("Showing messages " + offset + " to " + (offset + 10));
+          int limit = 10;
+          String get_chat_query = String.format(
+                  "SELECT * FROM message WHERE chat_id= %d ORDER BY msg_timestamp desc LIMIT %d OFFSET %d"
+                  , chat, limit, offset);
+
+          esql.executeQueryAndPrintResult(get_chat_query);
+          //ask if user wants to view more. increment limit by 10. clear screen and reexecute query. loop until user says no
+        
           System.out.println("\t1. see next 10 messages");
           System.out.println("\t2. see previous 10 messages");
           System.out.println("\t3. Reply to chat");
           System.out.println("\t4. return to main menu");
           switch(readChoice()){  
             case 1: 
+                    
+                    offset += 10;
                     break;
-            case 2:
+            case 2: 
+                    if(offset > 0){
+                      offset -= 10;
+                    }
                     break;
             case 3: 
                     ReplyChat(esql, authorisedUser, chat);
