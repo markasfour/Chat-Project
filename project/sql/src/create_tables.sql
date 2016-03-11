@@ -51,7 +51,7 @@ CREATE TABLE CHAT_LIST(
 CREATE TABLE MESSAGE(
 	msg_id serial, 
 	msg_text char(300) NOT NULL, 
-	msg_timestamp timestamp NOT NULL,
+	msg_timestamp timestamp NOT NULL DEFAULT NOW(),
 		sender_login char(50),
 	chat_id integer,
 	PRIMARY KEY(msg_id), 

@@ -225,15 +225,25 @@ public class Messenger {
   public static void ViewChatSubmenu(Messenger esql, String authorisedUser){
       boolean picking = true;
       ListChats(esql, authorisedUser);  
-      System.out.println("\t1. View Messeges in chat");
-      System.out.println("\t2. Reply to chat");
-      System.out.println("\t3. Add member to chat");
-      System.out.println("\t4. Delete memeber from chat");
-      System.out.println("\t5. Delete chat");
+      System.out.println("\t1. Open Chat for viewing and replying");
+      System.out.println("\t2. Add member to chat");
+      System.out.println("\t3. Delete memeber from chat");
+      System.out.println("\t4. Delete chat");
       while(picking){
         switch (readChoice()){
-          case 1: AddToContact(esql, authorisedUser); 
-                  WaitForKey(); break;
+          case 1: 
+                  ViewMessages(esql, authorisedUser); 
+                  break;
+          case 2:
+                  AddMember(esql, authorisedUser);
+                  break;
+          case 3:
+                  DeleteMember(esql, authorisedUser);
+                  break;
+          case 4:
+                  DeleteChat(esql, authorisedUser);
+                  break;
+          
           
            
           default : System.out.println("Unrecognized choice! choose again"); break;
@@ -388,6 +398,23 @@ public class Messenger {
       }while (true);
       return input;
    }//end readChoice
+  
+  public static int readChatID(){
+    int input;
+    do {
+      System.out.print("Please select a Chat: ");
+      try { // read the integer, parse it and break.
+        input = Integer.parseInt(in.readLine());
+        break;
+      }catch (Exception e) {
+        System.out.println("Your input is invalid!");
+        continue;
+      }//end try
+    }while (true);
+    return input;
+    
+    
+  }
   
    /*
     * Wait for key to continue
@@ -586,9 +613,9 @@ public class Messenger {
           System.out.println("\t1. group");
           System.out.println("\t2. private");
           switch(readChoice()){
-            case "1": chat_type = "group"; 
+            case 1: chat_type = "group"; 
                     picking = false; break;
-            case "2": chat_type = "private"; 
+            case 2: chat_type = "private"; 
                     picking = false; break;
             default: System.out.println("Unrecognized choice!"); break;
           }
@@ -629,7 +656,6 @@ public class Messenger {
         //System.out.println("Query Error: "+ e.getMessage());
       }
   }//end 
-     
    public static void DeleteAccount(Messenger esql, String authorisedUser){
     try{
      
@@ -639,10 +665,67 @@ public class Messenger {
     }
        
   }
-
-  public static void ViewChat(){
+  
+  private static boolean ValidChat(Messenger esql, String authorisedUser, int chatID){
+    try {
+       String check_valid_query = String.format(
+                                  "SELECT chat_id from chat_list WHERE chat_list.chat_id = '%d' " +
+                                  "AND chat_list.member='%s';", chatID, authorisedUser);
+      
+      List<List< String> > result = esql.executeQueryAndReturnResult(check_valid_query);
+      if(result.size() > 0){
+        return true; 
+      }
+       
+    } catch(Exception e){
+      
+    }
+    return false;
+    
+  }
+  
+  
+  
+  
+  //MARK'S CODE - TEST ME
+  public static void ViewMessages(Messenger esql, String authorisedUser){
+    boolean picking = true;
     try{
-      String get_chat_query = String.format("SELECT * FROM message WHERE chat_id=5001 ORDER BY msg_timestamp LIMIT 10"); 
+      System.out.println("Select a chat to view messages in.");
+      int chat = Integer.parseInt(in.readLine());
+      if (ValidChat(esql, authorisedUser, chat))
+      {
+        
+        System.out.print("\033[H\033[2J");
+      	int limit = 10;
+      	String get_chat_query = String.format("SELECT * FROM message WHERE chat_id= %d ORDER BY msg_timestamp desc LIMIT %d", chat, limit);
+      	esql.executeQueryAndPrintResult(get_chat_query);
+      	//ask if user wants to view more. increment limit by 10. clear screen and reexecute query. loop until user says no
+        while(picking){
+          System.out.println("\t1. see next 10 messages");
+          System.out.println("\t2. see previous 10 messages");
+          System.out.println("\t3. Reply to chat");
+          System.out.println("\t4. return to main menu");
+          switch(readChoice()){  
+            case 1: 
+                    break;
+            case 2:
+                    break;
+            case 3: 
+                    ReplyChat(esql, authorisedUser, chat);
+                    break;
+            case 4:
+                    picking = false;
+                    break;
+            default:
+                    break;
+          }
+        }
+      }
+      else
+      {
+      	System.out.println("Invalid chat");
+      }
       
     } catch(Exception e){
       
@@ -650,6 +733,54 @@ public class Messenger {
     
   }
   
+  public static void ReplyChat(Messenger esql, String authorisedUser, int chatID){
+    try {
+      
+      /*
+      // Ask user for the chat_id
+      System.out.println("Please enter a chat id.");
+      int chatID;
+      do{
+        chatID = readChoice();
+        System.out.println("chatID is " + chatID);
+      }while(!ValidChat(esql, authorisedUser, chatID));
+      */
+      
+      // Ask user for a message to send
+      System.out.println("Enter a message to send:");
+      String message = in.readLine();
+      
+      
+      // Send message
+      String insert_chat_query = String.format(
+                                 "INSERT INTO message (msg_text, sender_login,chat_id) VALUES ('%s','%s','%d')"
+                                 , message, authorisedUser, chatID);
+      
+      esql.executeUpdate(insert_chat_query);
+      
+      System.out.println("Message sent!");
+      //System.out.print("\033[H\033[2J");
+      //System.out.flush();
+    } catch(Exception e) {
+      System.out.println("Query Error: " + e.getMessage());
+    }
+    
+  }
+
+  
+  public static void DeleteChat(Messenger esql, String authorisedUser){
+    
+  }
+  
+  public static void DeleteMember(Messenger esql, String authorisedUser){
+    
+    
+  }
+  
+  public static void AddMember(Messenger esql, String authorisedUser){
+    
+    
+  }
   
    public static void Query6(Messenger esql){
       // Your code goes here.
