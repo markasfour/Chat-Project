@@ -333,29 +333,47 @@ public class Messenger {
                 System.out.println("MAIN MENU\tWelcome, "+authorisedUser);
                 System.out.println("---------");
                 System.out.println("1. Add to contact list");
-                System.out.println("2. Browse contact list");
-                System.out.println("3. Browse blocked list");
-                System.out.println("4. View chats");
-                System.out.println("5. Create A Chat");
-                System.out.println("6. Delete Account");
+                System.out.println("2. Remove from contact list");
+                System.out.println("3. Browse contact list");
+                System.out.println("4. Add to blocked list");
+                System.out.println("5. Remove from blocked list");
+                System.out.println("6. Browse blocked list");
+                System.out.println("7. View chats");
+                System.out.println("8. Create a chat");
+                System.out.println("9. Delete account");
                 System.out.println(".........................");
-                System.out.println("9. Log out");
+                System.out.println("10. Log out");
                 System.out.flush();
                 switch (readChoice()){
                    case 1: AddToContact(esql, authorisedUser); 
                            WaitForKey(); break;
-                   case 2: ListContacts(esql, authorisedUser);  
-                           WaitForKey(); break;
-                   case 3: ListBlocked(esql, authorisedUser); 
-                           WaitForKey(); break;
-                   case 4: ViewChatSubmenu(esql, authorisedUser);
                   
+                   case 2: RemoveFromContact(esql, authorisedUser);
                            WaitForKey(); break;
-                   case 5: NewChat(esql, authorisedUser); 
+                  
+                   case 3: ListContacts(esql, authorisedUser);  
                            WaitForKey(); break;
-                   case 6: DeleteAccount(esql, authorisedUser); 
+                  
+                   case 5: RemoveFromBlock(esql, authorisedUser);
+                           
+                     
+                   case 3: AddToBlock(esql, authorisedUser);
                            WaitForKey(); break;
-                   case 9: usermenu = false; break;
+                  
+                   case 4: ListBlocked(esql, authorisedUser); 
+                           WaitForKey(); break;
+                  
+                   case 5: ViewChatSubmenu(esql, authorisedUser);
+                            break;
+                  
+                   case 6: NewChat(esql, authorisedUser); 
+                           WaitForKey(); break;
+                  
+                   case 7: DeleteAccount(esql, authorisedUser); 
+                           WaitForKey(); break;
+                  
+                   case 10: usermenu = false; break;
+                  
                    default : System.out.println("Unrecognized choice!");  
                            WaitForKey(); break;
                 }
@@ -497,7 +515,7 @@ public class Messenger {
       try{
       //First, ask user for other user's login and check if they exist
       String login;
-      System.out.print("Enter the login name: ");
+      System.out.print("Enter the user name: ");
       login = in.readLine();
       String query1 = String.format("SELECT COUNT(*) FROM Usr WHERE login = '%s'", login);
       int rowCount = esql.executeQuery(query1);
@@ -527,6 +545,39 @@ public class Messenger {
       }   
    }//end
 
+  public static void AddToBlock(Messenger esql, String authorisedUser){
+      try{
+      //First, ask user for other user's login and check if they exist
+      String login;
+      System.out.print("Enter the user name: ");
+      login = in.readLine();
+      String query1 = String.format("SELECT COUNT(*) FROM Usr WHERE login = '%s'", login);
+      int rowCount = esql.executeQuery(query1);
+    
+      if (rowCount == 1) //requested user exists
+      {   
+        //Second, get contat list ID
+        String query2 = String.format("SELECT block_list FROM Usr WHERE login = '%s'", authorisedUser);
+    
+        List<List<String>> result;
+        result = esql.executeQueryAndReturnResult(query2);
+        int list_id = Integer.parseInt(result.get(0).get(0)); 
+    
+        //Third, insert contact to contact list
+        String query3 = String.format("INSERT INTO USER_LIST_CONTAINS (list_id, list_member) " +
+                        "VALUES('%s', '%s');", list_id, login);
+    
+        esql.executeUpdate(query3);
+        System.out.println ("Successfully added to contacts!");
+      }   
+      else //requested user does not exist
+        System.out.println ("This user does not exist.");
+    
+    
+      }catch(Exception e){ 
+        System.err.println (e.getMessage ());
+      }   
+   }//end
 
    public static void ListContacts(Messenger esql, String authorisedUser){
       try{
@@ -573,14 +624,34 @@ public class Messenger {
       }   
    }//end
   
-  private static boolean validUser(Messenger esql, String checkingUser){
+  private static boolean ValidUser(Messenger esql, String authorisedUser, String checkingUser){
+    String query = "";
     try{
-      String query = String.format("SELECT login FROM usr WHERE login='%s'", checkingUser);
-      if(esql.executeQueryAndPrintResult(query)>0){
-        return true;
+      //Check if user exists
+      query = String.format("SELECT login FROM usr WHERE login='%s'", checkingUser);
+      if(esql.executeQuery(query)>0){
+        
+
+        //Check if users blocklist contains authorisedUser
+        query = String.format(
+          "SELECT list_member FROM user_list_contains WHERE "
+          + "list_member='%s' AND list_id = (SELECT block_list " 
+          + "FROM usr where login ='%s');", authorisedUser, checkingUser);
+        
+        
+        if(esql.executeQuery(query) > 0){
+          //System.out.println("FALSE: " + query);
+          return false;
+        }  else {
+          //System.out.println("TRUE: " + query);
+          return true;
+        }
+        
       }
       return false;
      } catch(Exception e){
+      System.out.println("QUERY ERROR: " + query);
+      System.out.println("Message: " + e.getMessage());
       return false;
      } 
     
@@ -596,13 +667,20 @@ public class Messenger {
         while(picking){
           System.out.println("Type in the new reciepients name or hit [enter] to continue");
           String contact = in.readLine();
-          System.out.println("contact is " + contact);
-          if(validUser(esql, contact)){
+          
+          if(ValidUser(esql, authorisedUser, contact)){
             System.out.println("Adding " + contact + " to the recipients list");
             users.add(contact);
           } else if (contact.equals("")){
-            System.out.println("continuing...");
-            picking = false;
+            if(users.size() < 2){
+              System.out.println("You must add atleast one other member into the chat!");
+            } else {
+              System.out.println("Users in chat: ");
+              for( String user : users){
+                System.out.println("\t"+user); 
+              }
+              picking = false;
+            }
           } else {
             System.out.println("Not a valid Username try again!");
           }
@@ -610,25 +688,12 @@ public class Messenger {
       } catch(Exception e){
        
       } 
-      
-      picking = true;
-      String chat_type = "";
-      try {
-        while(picking){
-          System.out.println("Pick the chat type:");
-          System.out.println("\t1. group");
-          System.out.println("\t2. private");
-          switch(readChoice()){
-            case 1: chat_type = "group"; 
-                    picking = false; break;
-            case 2: chat_type = "private"; 
-                    picking = false; break;
-            default: System.out.println("Unrecognized choice!"); break;
-          }
-        }
-      } catch(Exception e){
-         System.err.println (e.getMessage ());
+    
+      String chat_type = "group";
+      if( users.size() == 2){
+        chat_type = "private";  
       }
+      
       String query_insert_chat = "";
       try {
         //int seq_val = esql.getCurrSeqVal("chat_chat_id_seq");
@@ -636,21 +701,14 @@ public class Messenger {
                                      "INSERT INTO chat (chat_type, init_sender) VALUES ('%s','%s') RETURNING chat_id;"
                                      , chat_type, authorisedUser);
         List< List < String > > result = esql.executeQueryAndReturnResult(query_insert_chat);
-        System.out.println("Executed");
+       
         //System.out.println("Result is: " + result.toString());
         int seq_val = Integer.parseInt(result.get(0).get(0));
         System.out.println("chat_id is " + seq_val);
         
-        /*
-        String query_insert_chat_list = "INSERT INTO chat_list (chat_id, member) VALUES ('%s','%s')";
-        
-        for(int k = 0; k < users.size(); k++){
-          query_insert_chat_list += " ('%s','%s')";
-        }
-        */
+      
         
         for(String member : users){
-          System.out.println("Adding user "+ member);
           String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES ('%s','%s');"
                                                         , seq_val, member);
           esql.executeQuery(query_insert_chat_list);
@@ -782,6 +840,14 @@ public class Messenger {
     }
     
   }
+  
+  public static void RemoveFromContact(Messenger esql, String authorisedUser){
+    
+  }
+  public static void RemoveFromBlock(Messenger esql, String authorisedUser){
+    
+  }
+  
 
   
   public static void DeleteChat(Messenger esql, String authorisedUser){
