@@ -227,26 +227,18 @@ public class Messenger {
       while(picking){
       	System.out.print("\033[H\033[2J"); 
         ListChats(esql, authorisedUser);  
-      	System.out.println("\t1. Open Chat for viewing and replying");
-      	System.out.println("\t2. Add member to chat");
-      	System.out.println("\t3. Delete memeber from chat");
-      	System.out.println("\t4. Delete chat");
-      	System.out.println("\t5. return to main menu");
+      	System.out.println("\t1. Open Chat for viewing, replying, and editing members");
+      	System.out.println("\t2. Delete chat");
+      	System.out.println("\t9. return to main menu");
       	System.out.flush();
         switch (readChoice()){
           case 1: 
                   ViewMessages(esql, authorisedUser); 
                   break;
           case 2:
-                  AddMember(esql, authorisedUser);
-                  break;
-          case 3:
-                  DeleteMember(esql, authorisedUser);
-                  break;
-          case 4:
                   DeleteChat(esql, authorisedUser);
                   break;
-          case 5:
+          case 9:
           	      picking = false;
           	      break;
           
@@ -616,7 +608,7 @@ public class Messenger {
           //             "WHERE CL.chat_id = ANY (SELECT chat_id " +
             //                    "FROM CHAT_LIST " +
               //                  "WHERE member = '%s' )", authorisedUser);
-		String query = String.format("SELECT chat_id " +
+		String query = String.format("SELECT * " +
 						"FROM CHAT_LIST " + 
 						"WHERE member = '%s' ", authorisedUser);
 
@@ -720,10 +712,9 @@ public class Messenger {
         System.out.println("Finished creating a chat!");
       } catch(Exception e){
 		System.out.println("Query Error: " + e.getMessage());
-        //System.out.println("Query: "+ query_insert_chat);
-        //System.out.println("Query Error: "+ e.getMessage());
       }
   }//end 
+
    public static void DeleteAccount(Messenger esql, String authorisedUser){
     try{
      
@@ -773,24 +764,31 @@ public class Messenger {
           esql.executeQueryAndPrintResult(get_chat_query);
           //ask if user wants to view more. increment limit by 10. clear screen and reexecute query. loop until user says no
         
-          System.out.println("\t1. see next 10 messages");
-          System.out.println("\t2. see previous 10 messages");
-          System.out.println("\t3. Reply to chat");
-          System.out.println("\t4. return to main menu");
+          System.out.println("\t1. Reply to chat");
+          System.out.println("\t2. see next 10 messages");
+          System.out.println("\t3. see previous 10 messages");
+          System.out.println("\t4. Add members to chat");
+          System.out.println("\t5. Remove members from chat");
+          System.out.println("\t6. return to main menu");
           switch(readChoice()){  
             case 1: 
-                    
-                    offset += 10;
+                    ReplyChat(esql, authorisedUser, chat);
                     break;
             case 2: 
+                    offset += 10;
+                    break;
+            case 3: 
                     if(offset > 0){
                       offset -= 10;
                     }
                     break;
-            case 3: 
-                    ReplyChat(esql, authorisedUser, chat);
-                    break;
-            case 4:
+            case 4: 
+					AddMember(esql, authorisedUser, chat);
+					break;
+			
+			case 5: DeleteMember(esql, authorisedUser, chat);
+					break;
+            case 6:
                     picking = false;
                     break;
             default:
@@ -835,8 +833,6 @@ public class Messenger {
       esql.executeUpdate(insert_chat_query);
       
       System.out.println("Message sent!");
-      //System.out.print("\033[H\033[2J");
-      //System.out.flush();
     } catch(Exception e) {
       System.out.println("Query Error: " + e.getMessage());
     }
@@ -912,13 +908,35 @@ public class Messenger {
     
   }
   
-  public static void DeleteMember(Messenger esql, String authorisedUser){
+  public static void DeleteMember(Messenger esql, String authorisedUser, int chatID){
     
     
   }
   
-  public static void AddMember(Messenger esql, String authorisedUser){
-    
+  public static void AddMember(Messenger esql, String authorisedUser, int chatID){
+	System.out.println("Here are a list of your contacts, you can also add other users with their username: ");
+      ListContacts(esql, authorisedUser);
+      boolean picking = true;
+      try {
+        while(picking){
+          System.out.println("Type in the new recipient name or hit [enter] to continue");
+          String contact = in.readLine();
+          
+          if(ValidUser(esql, authorisedUser, contact)){
+            System.out.println("Adding " + contact + " to the recipients list");
+			String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES (%d,'%s')" , chatID, contact);
+			esql.executeUpdate(query_insert_chat_list);
+          } 
+          else if (contact.equals("")){
+              picking = false;
+            }
+          else {
+            System.out.println("Not a valid Username try again!");
+          }
+        }
+      } catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());       
+      }    
     
   }
   
