@@ -909,8 +909,37 @@ public class Messenger {
   }
   
   public static void DeleteMember(Messenger esql, String authorisedUser, int chatID){
-    
-    
+  	  try{
+  	  System.out.println("Here is a list of the recipients: ");
+      String query = String.format("SELECT member FROM chat_list WHERE chat_id = %d", chatID);
+      int number_of_recipients = esql.executeQueryAndPrintResult(query);
+      boolean picking = true;
+      	if (number_of_recipients >= 3)
+      	{
+        	while(picking){
+          	  System.out.println("Type in the recipient to remove or hit [enter] to continue");
+          	  String contact = in.readLine();
+          	  
+          	  if(ValidUser(esql, authorisedUser, contact)){
+            	System.out.println("Removing " + contact + " from the recipients list");
+				String query_insert_chat_list = String.format("DELETE FROM chat_list WHERE chat_id = %d AND member = '%s'" , chatID, contact);
+				esql.executeUpdate(query_insert_chat_list);
+          	  } 
+          	  else if (contact.equals("")){
+              	  picking = false;
+            	}
+          	  else {
+            	System.out.println("Not a valid Username try again!");
+          	  }
+        	}
+        }
+		else{
+			System.out.println("Only 2 members in chat. You can only delete entire chat");
+			WaitForKey();
+		}
+      } catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());       
+      }    
   }
   
   public static void AddMember(Messenger esql, String authorisedUser, int chatID){
