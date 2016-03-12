@@ -354,22 +354,22 @@ public class Messenger {
                    case 3: ListContacts(esql, authorisedUser);  
                            WaitForKey(); break;
                   
+                   case 4: AddToBlock(esql, authorisedUser);
+                           WaitForKey(); break;
+                   
                    case 5: RemoveFromBlock(esql, authorisedUser);
-                           
-                     
-                   case 3: AddToBlock(esql, authorisedUser);
+						   WaitForKey(); break; 
+                  
+                   case 6: ListBlocked(esql, authorisedUser); 
                            WaitForKey(); break;
                   
-                   case 4: ListBlocked(esql, authorisedUser); 
-                           WaitForKey(); break;
-                  
-                   case 5: ViewChatSubmenu(esql, authorisedUser);
+                   case 7: ViewChatSubmenu(esql, authorisedUser);
                             break;
                   
-                   case 6: NewChat(esql, authorisedUser); 
+                   case 8: NewChat(esql, authorisedUser); 
                            WaitForKey(); break;
                   
-                   case 7: DeleteAccount(esql, authorisedUser); 
+                   case 9: DeleteAccount(esql, authorisedUser); 
                            WaitForKey(); break;
                   
                    case 10: usermenu = false; break;
@@ -531,7 +531,7 @@ public class Messenger {
     
         //Third, insert contact to contact list
         String query3 = String.format("INSERT INTO USER_LIST_CONTAINS (list_id, list_member) " +
-                        "VALUES('%s', '%s');", list_id, login);
+                        "VALUES(%d, '%s');", list_id, login);
     
         esql.executeUpdate(query3);
         System.out.println ("Successfully added to contacts!");
@@ -565,10 +565,10 @@ public class Messenger {
     
         //Third, insert contact to contact list
         String query3 = String.format("INSERT INTO USER_LIST_CONTAINS (list_id, list_member) " +
-                        "VALUES('%s', '%s');", list_id, login);
+                        "VALUES(%d, '%s');", list_id, login);
     
         esql.executeUpdate(query3);
-        System.out.println ("Successfully added to contacts!");
+        System.out.println ("Successfully added to blocked list");
       }   
       else //requested user does not exist
         System.out.println ("This user does not exist.");
@@ -602,7 +602,7 @@ public class Messenger {
                        "WHERE U.login = '%s' AND UL.list_id = U.block_list AND ULC.list_id = UL.list_id ", authorisedUser);
 
          int rowCount = esql.executeQueryAndPrintResult(query);
-         System.out.println ("total contacts: " + rowCount);
+         System.out.println ("total blocked: " + rowCount);
       }catch(Exception e){
          System.err.println (e.getMessage());
       }
@@ -709,7 +709,7 @@ public class Messenger {
       
         
         for(String member : users){
-          String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES ('%s','%s');"
+          String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES (%d,'%s');"
                                                         , seq_val, member);
           esql.executeQuery(query_insert_chat_list);
         }
@@ -733,7 +733,7 @@ public class Messenger {
   private static boolean ValidChat(Messenger esql, String authorisedUser, int chatID){
     try {
        String check_valid_query = String.format(
-                                  "SELECT chat_id from chat_list WHERE chat_list.chat_id = '%d' " +
+                                  "SELECT chat_id from chat_list WHERE chat_list.chat_id = %d " +
                                   "AND chat_list.member='%s';", chatID, authorisedUser);
       
       List<List< String> > result = esql.executeQueryAndReturnResult(check_valid_query);
@@ -748,10 +748,6 @@ public class Messenger {
     
   }
   
-  
-  
-  
-  //MARK'S CODE - TEST ME
   public static void ViewMessages(Messenger esql, String authorisedUser){
     boolean picking = true;
     int offset = 0;
@@ -842,13 +838,69 @@ public class Messenger {
   }
   
   public static void RemoveFromContact(Messenger esql, String authorisedUser){
+	try{	
+    //Get contat list ID
+    String query1 = String.format("SELECT contact_list FROM Usr WHERE login = '%s'", authorisedUser);
+
+    List<List<String>> result;
+    result = esql.executeQueryAndReturnResult(query1);
+    int list_id = Integer.parseInt(result.get(0).get(0)); 
+	
+	//Ask user for other user's login and check if they exist
+	String login;
+	System.out.print("Enter the user name: ");
+	login = in.readLine();
+	String query2 = String.format("SELECT * FROM USER_LIST_CONTAINS WHERE list_id = %d and list_member= '%s'", list_id, login);
+	int rowCount = esql.executeQuery(query2);
+      
+      if (rowCount > 0) //requested user exists
+      {   
+        //Delete contact from contact list
+        String query3 = String.format("DELETE FROM USER_LIST_CONTAINS WHERE list_id = %d and list_member = '%s'", list_id, login);
     
+        esql.executeUpdate(query3);
+        System.out.println ("Successfully removed from contacts");
+      }   
+      else //requested user does not exist
+        System.out.println ("This user does not exist in your contacts.");
+   }
+   catch(Exception e) {
+	System.out.println("Query Error: " + e.getMessage());
+   }
   }
+
   public static void RemoveFromBlock(Messenger esql, String authorisedUser){
+    try{	
+    //Get block list ID
+    String query1 = String.format("SELECT block_list FROM Usr WHERE login = '%s'", authorisedUser);
+
+    List<List<String>> result;
+    result = esql.executeQueryAndReturnResult(query1);
+    int list_id = Integer.parseInt(result.get(0).get(0)); 
+	
+	//Ask user for other user's login and check if they exist
+	String login;
+	System.out.print("Enter the user name: ");
+	login = in.readLine();
+	String query2 = String.format("SELECT * FROM USER_LIST_CONTAINS WHERE list_id = %d and list_member= '%s'", list_id, login);
+	int rowCount = esql.executeQuery(query2);
+      
+      if (rowCount > 0) //requested user exists
+      {   
+        //Delete contact from block list
+        String query3 = String.format("DELETE FROM USER_LIST_CONTAINS WHERE list_id = %d and list_member = '%s'", list_id, login);
     
+        esql.executeUpdate(query3);
+        System.out.println ("Successfully removed from blocked");
+      }   
+      else //requested user does not exist
+        System.out.println ("This user does not exist in your blocked list.");
+   }
+   catch(Exception e) {
+	System.out.println("Query Error: " + e.getMessage());
+   }
   }
   
-
   
   public static void DeleteChat(Messenger esql, String authorisedUser){
     
