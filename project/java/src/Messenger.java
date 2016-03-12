@@ -611,11 +611,14 @@ public class Messenger {
    public static void ListChats(Messenger esql, String authorisedUser){
       try{
         //select chats where user is a member of that chat
-        String query = String.format("SELECT CL.chat_id, CL.member " + 
-                       "FROM CHAT_LIST CL " + 
-                       "WHERE CL.chat_id = ANY (SELECT chat_id " +
-                                "FROM CHAT_LIST " +
-                                "WHERE member = '%s' )", authorisedUser);
+        //String query = String.format("SELECT CL.chat_id, CL.member " + 
+        //               "FROM CHAT_LIST CL " + 
+          //             "WHERE CL.chat_id = ANY (SELECT chat_id " +
+            //                    "FROM CHAT_LIST " +
+              //                  "WHERE member = '%s' )", authorisedUser);
+		String query = String.format("SELECT chat_id " +
+						"FROM CHAT_LIST " + 
+						"WHERE member = '%s' ", authorisedUser);
 
          int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total chats: " + rowCount);
@@ -709,13 +712,14 @@ public class Messenger {
       
         
         for(String member : users){
-          String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES (%d,'%s');"
+          String query_insert_chat_list = String.format("INSERT INTO chat_list (chat_id, member) VALUES ('%d','%s');"
                                                         , seq_val, member);
-          esql.executeQuery(query_insert_chat_list);
+          esql.executeUpdate(query_insert_chat_list);
         }
       
         System.out.println("Finished creating a chat!");
       } catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());
         //System.out.println("Query: "+ query_insert_chat);
         //System.out.println("Query Error: "+ e.getMessage());
       }
@@ -725,7 +729,7 @@ public class Messenger {
      
       
     } catch(Exception e) {
-      
+      System.out.println("Query Error: " + e.getMessage());
     }
        
   }
@@ -740,9 +744,11 @@ public class Messenger {
       if(result.size() > 0){
         return true; 
       }
+      else
+      	  System.out.println("Invalid chat");
        
     } catch(Exception e){
-      
+      System.out.println("Query Error: " + e.getMessage());
     }
     return false;
     
@@ -798,7 +804,7 @@ public class Messenger {
       }
       
     } catch(Exception e){
-      
+      System.out.println("Query Error: " + e.getMessage());
     }
     
   }
