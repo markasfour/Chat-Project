@@ -744,6 +744,21 @@ public class Messenger {
     return false;
     
   }
+
+  private static boolean IsInitialSender(Messenger esql, String authorisedUser, int chatID){
+	try {
+		String check_initial_sender = String.format("SELECT init_sender FROM CHAT " +
+										"WHERE chat_id = %d AND init_sender = '%s'", chatID, authorisedUser);
+		List<List< String> > result = esql.executeQueryAndReturnResult(check_initial_sender);
+      	if(result.size() > 0){
+			return true; 
+      	}
+	}
+	catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());
+	}
+	return false;
+  }
   
   public static void ViewMessages(Messenger esql, String authorisedUser){
     boolean picking = true;
@@ -762,13 +777,17 @@ public class Messenger {
                   , chat, limit, offset);
 
           esql.executeQueryAndPrintResult(get_chat_query);
-          //ask if user wants to view more. increment limit by 10. clear screen and reexecute query. loop until user says no
-        
+          //ask if user wants to view more. increment limit by 10. clear screen and reexecute query. loop until user says no    
           System.out.println("\t1. Reply to chat");
           System.out.println("\t2. see next 10 messages");
           System.out.println("\t3. see previous 10 messages");
-          System.out.println("\t4. Add members to chat");
-          System.out.println("\t5. Remove members from chat");
+
+          //these options are given only if the user is the initial sender for these chats
+          if (IsInitialSender(esql, authorisedUser, chat))
+          {
+			System.out.println("\t4. Add members to chat");
+			System.out.println("\t5. Remove members from chat");
+          }
           System.out.println("\t6. return to main menu");
           switch(readChoice()){  
             case 1: 
@@ -783,10 +802,15 @@ public class Messenger {
                     }
                     break;
             case 4: 
-					AddMember(esql, authorisedUser, chat);
+					if (IsInitialSender(esql, authorisedUser, chat)){
+						AddMember(esql, authorisedUser, chat);
+					}
 					break;
 			
-			case 5: DeleteMember(esql, authorisedUser, chat);
+			case 5: 
+					if (IsInitialSender(esql, authorisedUser, chat)){
+						DeleteMember(esql, authorisedUser, chat);
+					}
 					break;
             case 6:
                     picking = false;
