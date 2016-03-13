@@ -773,7 +773,7 @@ public class Messenger {
           System.out.println("Showing messages " + offset + " to " + (offset + 10));
           int limit = 10;
           String get_chat_query = String.format(
-                  "SELECT * FROM message WHERE chat_id= %d ORDER BY msg_timestamp desc LIMIT %d OFFSET %d"
+                  "SELECT msg_id, msg_timestamp, msg_text FROM message WHERE chat_id= %d ORDER BY msg_timestamp desc LIMIT %d OFFSET %d"
                   , chat, limit, offset);
 
           esql.executeQueryAndPrintResult(get_chat_query);
