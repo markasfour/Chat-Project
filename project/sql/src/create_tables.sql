@@ -46,7 +46,7 @@ CREATE TABLE CHAT_LIST(
 	member char(50),
 	PRIMARY KEY(chat_id,member), 
 	FOREIGN KEY(member) REFERENCES USR(login), 
-	FOREIGN KEY(chat_id) REFERENCES CHAT(chat_id));
+	FOREIGN KEY(chat_id) REFERENCES CHAT(chat_id) ON DELETE CASCADE);
 
 CREATE TABLE MESSAGE(
 	msg_id serial, 
@@ -56,6 +56,6 @@ CREATE TABLE MESSAGE(
 	chat_id integer,
 	PRIMARY KEY(msg_id), 
 	FOREIGN KEY(sender_login) REFERENCES USR(login),
-	FOREIGN KEY(chat_id) REFERENCES CHAT(chat_id));
+	FOREIGN KEY(chat_id) REFERENCES CHAT(chat_id) ON DELETE CASCADE);
 
 

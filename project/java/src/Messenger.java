@@ -929,7 +929,27 @@ public class Messenger {
   
   
   public static void DeleteChat(Messenger esql, String authorisedUser){
-    
+	try{
+		System.out.println("Select a chat to view messages in.");
+		int chat = Integer.parseInt(in.readLine());
+		if(IsInitialSender(esql, authorisedUser, chat))
+		{
+			System.out.println("Deleting chat...");
+			String delete_chat = String.format("DELETE FROM Chat where chat_id = %d", chat);
+			esql.executeUpdate(delete_chat);
+			
+			System.out.println("Successfully deleted chat");
+			WaitForKey();
+		}
+		else
+		{
+			System.out.println("You are not authorized to delete this chat");
+			WaitForKey();
+		}
+	}
+	catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());
+	}
   }
   
   public static void DeleteMember(Messenger esql, String authorisedUser, int chatID){
