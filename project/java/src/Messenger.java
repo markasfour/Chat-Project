@@ -779,16 +779,16 @@ public class Messenger {
           esql.executeQueryAndPrintResult(get_chat_query);
           //ask if user wants to view more. increment limit by 10. clear screen and reexecute query. loop until user says no    
           System.out.println("\t1. Reply to chat");
-          System.out.println("\t2. see next 10 messages");
-          System.out.println("\t3. see previous 10 messages");
-
+          System.out.println("\t2. See next 10 messages");
+          System.out.println("\t3. See previous 10 messages");
+		  System.out.println("\t4. Delete message");	
           //these options are given only if the user is the initial sender for these chats
           if (IsInitialSender(esql, authorisedUser, chat))
           {
-			System.out.println("\t4. Add members to chat");
-			System.out.println("\t5. Remove members from chat");
+			System.out.println("\t5. Add members to chat");
+			System.out.println("\t6. Remove members from chat");
           }
-          System.out.println("\t6. return to main menu");
+          System.out.println("\t7. return to main menu");
           switch(readChoice()){  
             case 1: 
                     ReplyChat(esql, authorisedUser, chat);
@@ -801,18 +801,21 @@ public class Messenger {
                       offset -= 10;
                     }
                     break;
-            case 4: 
+            case 4:
+					DeleteMessage(esql, authorisedUser, chat);
+					break;
+            case 5: 
 					if (IsInitialSender(esql, authorisedUser, chat)){
 						AddMember(esql, authorisedUser, chat);
 					}
 					break;
 			
-			case 5: 
+			case 6: 
 					if (IsInitialSender(esql, authorisedUser, chat)){
 						DeleteMember(esql, authorisedUser, chat);
 					}
 					break;
-            case 6:
+            case 7:
                     picking = false;
                     break;
             default:
@@ -930,7 +933,7 @@ public class Messenger {
   
   public static void DeleteChat(Messenger esql, String authorisedUser){
 	try{
-		System.out.println("Select a chat to view messages in.");
+		System.out.println("Select a chat to delete.");
 		int chat = Integer.parseInt(in.readLine());
 		if(IsInitialSender(esql, authorisedUser, chat))
 		{
@@ -1011,6 +1014,46 @@ public class Messenger {
 		System.out.println("Query Error: " + e.getMessage());       
       }    
     
+  }
+
+  private static boolean IsMessageSender(Messenger esql, String authorisedUser, int chatID, int message){
+	try{
+		String query = String.format("SELECT * FROM message " +
+						"WHERE msg_id = %d and chat_id = %d and sender_login = '%s'",
+						message, chatID, authorisedUser);
+		List<List< String> > result = esql.executeQueryAndReturnResult(query);
+      	if(result.size() > 0){
+			return true; 
+      	}
+	}
+	catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());
+	}
+	return false;
+  }
+
+  public static void DeleteMessage(Messenger esql, String authorisedUser, int chatID){
+	try{
+		System.out.println("Select a message to delete.");
+		int message = Integer.parseInt(in.readLine());
+		if(IsMessageSender(esql, authorisedUser, chatID, message))
+		{
+			System.out.println("Deleting message...");
+			String delete_message = String.format("DELETE FROM message where msg_id = %d", message);
+			esql.executeUpdate(delete_message);
+			
+			System.out.println("Successfully deleted message");
+			WaitForKey();
+		}
+		else
+		{
+			System.out.println("You are not authorized to delete this message");
+			WaitForKey();
+		}
+	}
+	catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());
+	}
   }
   
    public static void Query6(Messenger esql){
