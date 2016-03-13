@@ -781,14 +781,15 @@ public class Messenger {
           System.out.println("\t1. Reply to chat");
           System.out.println("\t2. See next 10 messages");
           System.out.println("\t3. See previous 10 messages");
-		  System.out.println("\t4. Delete message");	
+		  System.out.println("\t4. Edit message");
+		  System.out.println("\t5. Delete message");	
           //these options are given only if the user is the initial sender for these chats
           if (IsInitialSender(esql, authorisedUser, chat))
           {
-			System.out.println("\t5. Add members to chat");
-			System.out.println("\t6. Remove members from chat");
+			System.out.println("\t6. Add members to chat");
+			System.out.println("\t7. Remove members from chat");
           }
-          System.out.println("\t7. return to main menu");
+          System.out.println("\t8. return to main menu");
           switch(readChoice()){  
             case 1: 
                     ReplyChat(esql, authorisedUser, chat);
@@ -801,21 +802,24 @@ public class Messenger {
                       offset -= 10;
                     }
                     break;
-            case 4:
+            case 4: 
+					EditMessage(esql, authorisedUser, chat);
+					break;
+            case 5:
 					DeleteMessage(esql, authorisedUser, chat);
 					break;
-            case 5: 
+            case 6: 
 					if (IsInitialSender(esql, authorisedUser, chat)){
 						AddMember(esql, authorisedUser, chat);
 					}
 					break;
 			
-			case 6: 
+			case 7: 
 					if (IsInitialSender(esql, authorisedUser, chat)){
 						DeleteMember(esql, authorisedUser, chat);
 					}
 					break;
-            case 7:
+            case 8:
                     picking = false;
                     break;
             default:
@@ -1055,7 +1059,36 @@ public class Messenger {
 		System.out.println("Query Error: " + e.getMessage());
 	}
   }
-  
+	
+  public static void EditMessage(Messenger esql, String authorisedUser, int chatID){
+	try{
+		System.out.println("Select a message to edit.");
+		int message = Integer.parseInt(in.readLine());
+		if(IsMessageSender(esql, authorisedUser, chatID, message))
+		{
+			System.out.println("This message said: ");
+			String prev_message = String.format("SELECT msg_text FROM message WHERE msg_id = %d", message);
+			esql.executeQueryAndPrintResult(prev_message);
+
+      	  	System.out.println("Enter the edited message:");
+      	  	String message_text = in.readLine();
+      	  	String edit_message = String.format("UPDATE message SET msg_text = '%s' WHERE msg_id = %d" ,message_text, message);
+      	  	esql.executeUpdate(edit_message);
+
+			System.out.println("Successfully edited message");
+			WaitForKey(); 
+		}
+		else
+		{
+			System.out.println("You are not authorized to edit this message");
+			WaitForKey();
+		}
+	}
+	catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());
+	}
+  }
+
    public static void Query6(Messenger esql){
       // Your code goes here.
       // ...
