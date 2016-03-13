@@ -39,13 +39,13 @@ CREATE TABLE CHAT(
 	chat_type char(50) NOT NULL,
 	init_sender char(50),
 	PRIMARY KEY(chat_id), 
-	FOREIGN KEY(init_sender) REFERENCES USR(login));
+	FOREIGN KEY(init_sender) REFERENCES USR(login)) ON DELETE CASCADE;
 
 CREATE TABLE CHAT_LIST(
 	chat_id integer, 
 	member char(50),
 	PRIMARY KEY(chat_id,member), 
-	FOREIGN KEY(member) REFERENCES USR(login), 
+	FOREIGN KEY(member) REFERENCES USR(login) ON DELETE CASCADE, 
 	FOREIGN KEY(chat_id) REFERENCES CHAT(chat_id) ON DELETE CASCADE);
 
 CREATE TABLE MESSAGE(
@@ -55,7 +55,7 @@ CREATE TABLE MESSAGE(
 		sender_login char(50),
 	chat_id integer,
 	PRIMARY KEY(msg_id), 
-	FOREIGN KEY(sender_login) REFERENCES USR(login),
+	FOREIGN KEY(sender_login) REFERENCES USR(login) ON DELETE CASCADE,
 	FOREIGN KEY(chat_id) REFERENCES CHAT(chat_id) ON DELETE CASCADE);
 
 
