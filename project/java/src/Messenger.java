@@ -361,8 +361,10 @@ public class Messenger {
                    case 8: NewChat(esql, authorisedUser); 
                            WaitForKey(); break;
                   
-                   case 9: DeleteAccount(esql, authorisedUser); 
-                           WaitForKey(); break;
+                   case 9: boolean logout = DeleteAccount(esql, authorisedUser); 
+						   if (logout) {
+						   	   usermenu = false;
+						   }break;
                   
                    case 10: usermenu = false; break;
                   
@@ -715,16 +717,6 @@ public class Messenger {
       }
   }//end 
 
-   public static void DeleteAccount(Messenger esql, String authorisedUser){
-    try{
-     
-      
-    } catch(Exception e) {
-      System.out.println("Query Error: " + e.getMessage());
-    }
-       
-  }
-  
   private static boolean ValidChat(Messenger esql, String authorisedUser, int chatID){
     try {
        String check_valid_query = String.format(
@@ -1089,10 +1081,27 @@ public class Messenger {
 	}
   }
 
-   public static void Query6(Messenger esql){
-      // Your code goes here.
-      // ...
-      // ...
-   }//end Query6
+  public static boolean DeleteAccount(Messenger esql, String authorisedUser){
+    try{
+		System.out.println("Are you sure you would like to delete your account?");
+		System.out.println("1 = Yes. 2 = No");
+		switch (readChoice()){
+          case 1: 
+                  System.out.println("Deleting account...");
+                  String terminate = String.format("DELETE FROM usr WHERE login = '%s'", authorisedUser);
+                  esql.executeUpdate(terminate);
+                  
+                  System.out.println("Account successfully deleted");
+                  WaitForKey();
+				  return true; 
+          case 2:
+                  return false; 
+        }
 
+    } catch(Exception e) {
+      System.out.println("Query Error: " + e.getMessage());
+    }
+    return false;   
+  }
+  
 }//end Messenger
