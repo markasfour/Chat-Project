@@ -7,17 +7,22 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # compile the java program
 
 CLASSPATH="${DIR::-12}classes"
-LIBPATH="${DIR::-7}/lib/postgresql-9.4.1208.jre6.jar"
-HOSTNAME=chat-messenger.cjkipm6h5qsr.us-west-1.rds.amazonaws.com
 DB_NAME=chat
-PGPORT=5432
-USER=chat
-PASSWD=finish
 
+# FOR AMAZON RDS
+# LIBPATH="${DIR::-7}/lib/postgresql-9.4.1208.jre6.jar"
+# HOSTNAME=chat-messenger.cjkipm6h5qsr.us-west-1.rds.amazonaws.com
+# PGPORT=5432
+# USER=chat
+# PASSWD=finish
+
+# FOR WELL
+LIBPATH="${DIR::-7}/lib/pg73jdbc3.jar"
+HOSTNAME=localhost
+PGPORT=4444
 
 echo $CLASSPATH
 echo $HOSTNAME
-
 
 javac -d $CLASSPATH $DIR/../src/Messenger.java
 
