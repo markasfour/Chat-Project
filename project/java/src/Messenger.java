@@ -337,9 +337,10 @@ public class Messenger {
                 System.out.println("6. Browse blocked list");
                 System.out.println("7. View chats");
                 System.out.println("8. Create a chat");
-                System.out.println("9. Delete account");
+		System.out.println("9. Change status");
+                System.out.println("10. Delete account");
                 System.out.println(".........................");
-                System.out.println("10. Log out");
+                System.out.println("11. Log out");
                 System.out.flush();
                 switch (readChoice()){
                    case 1: AddToContact(esql, authorisedUser); 
@@ -366,12 +367,15 @@ public class Messenger {
                    case 8: NewChat(esql, authorisedUser); 
                            WaitForKey(); break;
                   
-                   case 9: boolean logout = DeleteAccount(esql, authorisedUser); 
+		   case 9: UpdateStatus(esql, authorisedUser);
+			   WaitForKey(); break;
+
+                   case 10: boolean logout = DeleteAccount(esql, authorisedUser); 
 						   if (logout) {
 						   	   usermenu = false;
 						   }break;
                   
-                   case 10: usermenu = false; break;
+                   case 11: usermenu = false; break;
                   
                    default : System.out.println("Unrecognized choice!");  
                            WaitForKey(); break;
@@ -615,9 +619,7 @@ public class Messenger {
           //             "WHERE CL.chat_id = ANY (SELECT chat_id " +
             //                    "FROM CHAT_LIST " +
               //                  "WHERE member = '%s' )", authorisedUser);
-		String query = String.format("SELECT * " +
-						"FROM CHAT_LIST " + 
-						"WHERE member = '%s' ", authorisedUser);
+		String query = String.format("SELECT m.chat_id as chat_id, m.sender_login as Sent_Latest_Message, m.msg_timestamp as Timestamp from message M where chat_id = ANY(select cl.chat_id from chat_list cl where member='%s') AND m.msg_timestamp = ANY (Select max (a.msg_timestamp) from message a where chat_id = any (select cl.chat_id from chat_list cl where member = '%s') Group by chat_id) order by m.msg_timestamp desc", authorisedUser, authorisedUser);
 
          int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total chats: " + rowCount);
@@ -716,8 +718,12 @@ public class Messenger {
                                                         , seq_val, member);
           esql.executeUpdate(query_insert_chat_list);
         }
-      
-        System.out.println("Finished creating a chat!");
+     	if (chat_type == "group"){ 
+        	System.out.println("Finished creating a group chat!");
+	}
+	else{
+		System.out.println("Finished creating a private chat!");
+	}
       } catch(Exception e){
 		System.out.println("Query Error: " + e.getMessage());
       }
@@ -1108,6 +1114,30 @@ public class Messenger {
       System.out.println("Query Error: " + e.getMessage());
     }
     return false;   
+  }
+
+  public static void UpdateStatus(Messenger esql, String authorisedUser){
+	try{
+		System.out.println("Your current status is: ");
+		String status = String.format("Select status from usr where login = '%s'", authorisedUser);
+		esql.executeQueryAndPrintResult(status);
+		System.out.println("Would you like to edit your status?");
+		System.out.println("1 = Yes. 2 = No");
+		switch (readChoice()){
+          	case 1:
+			System.out.println("Enter your new status: ");
+			String new_status = in.readLine();	
+			String edit_status = String.format("UPDATE usr SET status = '%s' WHERE login = '%s'", new_status, authorisedUser);
+			esql.executeUpdate(edit_status);
+
+			System.out.println("Successfully updated your status");
+		case 2:
+			return;
+		}
+	}
+	catch(Exception e){
+		System.out.println("Query Error: " + e.getMessage());	
+	}
   }
   
 }//end Messenger
