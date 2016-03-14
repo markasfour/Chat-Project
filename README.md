@@ -35,6 +35,8 @@ Now when you list all of your chats you will also be shown the users phone numbe
 
 * When creating a chat we list all of your contacts for easier usage.
 
+* Users can edit their status to share with all of their contacts
+
 * Several indexes are present to enhance the speed of the database queries\
   * the chat id is indexed because it is used in multiple joins
   * the login name is also indexed because the database scans through the user table hashes for the unique login name
