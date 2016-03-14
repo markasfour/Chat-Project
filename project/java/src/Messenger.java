@@ -619,8 +619,35 @@ public class Messenger {
           //             "WHERE CL.chat_id = ANY (SELECT chat_id " +
             //                    "FROM CHAT_LIST " +
               //                  "WHERE member = '%s' )", authorisedUser);
-		String query = String.format("SELECT m.chat_id as chat_id, m.sender_login as Sent_Latest_Message, m.msg_timestamp as Timestamp from message M where chat_id = ANY(select cl.chat_id from chat_list cl where member='%s') AND m.msg_timestamp = ANY (Select max (a.msg_timestamp) from message a where chat_id = any (select cl.chat_id from chat_list cl where member = '%s') Group by chat_id) order by m.msg_timestamp desc", authorisedUser, authorisedUser);
-
+		//String query = String.format("SELECT m.chat_id as chat_id, m.sender_login as Sent_Latest_Message, m.msg_timestamp as Timestamp from message M where chat_id = ANY(select cl.chat_id from chat_list cl where member='%s') AND m.msg_timestamp = ANY (Select max (a.msg_timestamp) from message a where chat_id = any (select cl.chat_id from chat_list cl where member = '%s') Group by chat_id) order by m.msg_timestamp desc", authorisedUser, authorisedUser);
+	String query = String.format(
+		"SELECT " +
+  		"  M.chat_id as Chat_ID, "+
+  		"  M.sender_login as Sent_Latest_Message, "+
+  		"  M.msg_timestamp as Timestamp " +
+		"FROM " +
+  		"  message M " +
+		"WHERE " +
+  		"  chat_id= ANY ( " +
+      		"    SELECT " +
+      		"      CL.chat_id " +
+      		"    FROM " +
+        	"      chat_list CL " +
+      		"    WHERE member='%s') " +
+  		"  AND " +
+  		"    M.msg_timestamp = ANY ( " +
+    		"      SELECT MAX(A.msg_timestamp) " +
+    		"      FROM " +
+       		"        Message A " +
+    		" WHERE chat_id = ANY ( " +
+      		"   SELECT CL.chat_id " +
+      		"   FROM " +
+        	"     chat_list CL " +
+      		"   WHERE member='%s') " +
+                " GROUP BY chat_id) " +
+                " ORDER BY " +
+	 	" M.msg_timestamp desc;"
+	 	, authorisedUser, authorisedUser);
          int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total chats: " + rowCount);
       }catch(Exception e){ 
