@@ -54,10 +54,11 @@ public class Messenger {
       System.out.print("Connecting to database...");
       try{
          // constructs the connection URL
-         String url = "jdbc:postgresql://" + hostname + ":" + dbport + "/" + dbname";
+         String url = "jdbc:postgresql://" + hostname + ":" + dbport + "/" + dbname
+                    + "?user=" + user;
          
          if(passwd!="") {
-        	url += "?user=" + user + "&password=" + passwd + "&ssl=false";
+        	url += "&password=" + passwd + "&ssl=false";
          }
          System.out.println ("Connection URL: " + url + "\n");
 
@@ -316,7 +317,8 @@ public class Messenger {
             System.out.flush();
             String authorisedUser = null;
             switch (readChoice()){
-               case 1: CreateUser(esql); break;
+               case 1: CreateUser(esql);
+                       WaitForKey(); break;
                case 2: authorisedUser = LogIn(esql); break;
                case 9: keepon = false; break;
                default : System.out.println("Unrecognized choice!"); break;
@@ -696,14 +698,15 @@ public class Messenger {
       
       String query_insert_chat = "";
       try {
-        //int seq_val = esql.getCurrSeqVal("chat_chat_id_seq");
         query_insert_chat = String.format(
-                                     "INSERT INTO chat (chat_type, init_sender) VALUES ('%s','%s') RETURNING chat_id;"
+                                     "INSERT INTO chat (chat_type, init_sender) VALUES ('%s','%s');"
                                      , chat_type, authorisedUser);
-        List< List < String > > result = esql.executeQueryAndReturnResult(query_insert_chat);
+        //List< List < String > > result = esql.executeQueryAndReturnResult(query_insert_chat);
        
         //System.out.println("Result is: " + result.toString());
-        int seq_val = Integer.parseInt(result.get(0).get(0));
+        //int seq_val = Integer.parseInt(result.get(0).get(0));
+        esql.executeUpdate(query_insert_chat);
+        int seq_val = esql.getCurrSeqVal("chat_chat_id_seq");
         System.out.println("chat_id is " + seq_val);
         
       

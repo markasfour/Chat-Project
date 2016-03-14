@@ -5,12 +5,6 @@ DROP TABLE USER_LIST_CONTAINS;
 DROP TABLE USR;
 DROP TABLE USER_LIST;
 
-CREATE SEQUENCE user_list_list_id_seq START WITH 55906;
-CREATE SEQUENCE chat_chat_id_seq START WITH 5001;
-CREATE SEQUENCE message_msg_id_seq START WITH 50000;
-
-
-
 CREATE TABLE USER_LIST(
 	list_id serial,
 	list_type char(10) NOT NULL, 
@@ -24,8 +18,8 @@ CREATE TABLE USR(
 	block_list integer,
 	contact_list integer,
 	Primary Key(login),
-	FOREIGN KEY(block_list) REFERENCES USER_LIST(list_id),
-	FOREIGN KEY(contact_list) REFERENCES USER_LIST(list_id));
+	FOREIGN KEY(block_list) REFERENCES USER_LIST(list_id) ON DELETE CASCADE,
+	FOREIGN KEY(contact_list) REFERENCES USER_LIST(list_id) ON DELETE CASCADE);
 
 CREATE TABLE USER_LIST_CONTAINS(
 	list_id integer,
@@ -39,7 +33,7 @@ CREATE TABLE CHAT(
 	chat_type char(50) NOT NULL,
 	init_sender char(50),
 	PRIMARY KEY(chat_id), 
-	FOREIGN KEY(init_sender) REFERENCES USR(login)) ON DELETE CASCADE;
+	FOREIGN KEY(init_sender) REFERENCES USR(login) ON DELETE CASCADE);
 
 CREATE TABLE CHAT_LIST(
 	chat_id integer, 
@@ -52,7 +46,7 @@ CREATE TABLE MESSAGE(
 	msg_id serial, 
 	msg_text char(300) NOT NULL, 
 	msg_timestamp timestamp NOT NULL DEFAULT NOW(),
-		sender_login char(50),
+    sender_login char(50),
 	chat_id integer,
 	PRIMARY KEY(msg_id), 
 	FOREIGN KEY(sender_login) REFERENCES USR(login) ON DELETE CASCADE,
