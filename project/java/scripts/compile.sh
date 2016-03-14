@@ -8,12 +8,12 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 CLASSPATH="${DIR::-12}classes"
 DB_NAME=chat
+USER=chat
 
 # FOR AMAZON RDS
 # LIBPATH="${DIR::-7}/lib/postgresql-9.4.1208.jre6.jar"
 # HOSTNAME=chat-messenger.cjkipm6h5qsr.us-west-1.rds.amazonaws.com
 # PGPORT=5432
-# USER=chat
 # PASSWD=finish
 
 # FOR WELL
