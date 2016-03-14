@@ -54,8 +54,11 @@ public class Messenger {
       System.out.print("Connecting to database...");
       try{
          // constructs the connection URL
-         String url = "jdbc:postgresql://" + hostname + ":" + dbport + "/" + dbname 
-                      + "?user=" + user + "&password=" + passwd + "&ssl=false";
+         String url = "jdbc:postgresql://" + hostname + ":" + dbport + "/" + dbname";
+         
+         if(passwd!="") {
+        	url += "?user=" + user + "&password=" + passwd + "&ssl=false";
+         }
          System.out.println ("Connection URL: " + url + "\n");
 
          // obtain a physical connection
