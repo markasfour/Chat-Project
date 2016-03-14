@@ -581,10 +581,10 @@ public class Messenger {
    public static void ListContacts(Messenger esql, String authorisedUser){
       try{
         // Browsing current user's contact list
-
-        String query = String.format("SELECT ULC.list_member " + 
-                       "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
-                       "WHERE U.login = '%s' AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id ", authorisedUser);
+	 String query = String.format("SELECT US.login, US.phoneNum, US.status From USR US WHERE login = Any (SELECT ulc.list_member from usr u, user_list ul, user_list_contains ulc where u.login = '%s' and ul.list_id = u.contact_list and ulc.list_id = ul.list_id);", authorisedUser);
+        //String query = String.format("Select US.login, US.phoneNum, US.status FROM USR US WHERE login = ANY (SELECT ULC.list_member, U.status, U.phoneNum " + 
+          //             "FROM USR U, USER_LIST UL, USER_LIST_CONTAINS ULC " +
+            //           "WHERE U.login = '%s' AND UL.list_id = U.contact_list AND ULC.list_id = UL.list_id) ", authorisedUser);
 
          int rowCount = esql.executeQueryAndPrintResult(query);
          System.out.println ("total contacts: " + rowCount);
